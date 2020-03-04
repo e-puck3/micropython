@@ -9,26 +9,9 @@
 #include "py/mperrno.h"
 #include "lib/utils/pyexec.h"
 
-#if MICROPY_ENABLE_COMPILER
-void do_str(const char *src, mp_parse_input_kind_t input_kind) {
-    nlr_buf_t nlr;
-    if (nlr_push(&nlr) == 0) {
-        mp_lexer_t *lex = mp_lexer_new_from_str_len(MP_QSTR__lt_stdin_gt_, src, strlen(src), 0);
-        qstr source_name = lex->source_name;
-        mp_parse_tree_t parse_tree = mp_parse(lex, input_kind);
-        mp_obj_t module_fun = mp_compile(&parse_tree, source_name, true);
-        mp_call_function_0(module_fun);
-        nlr_pop();
-    } else {
-        // uncaught exception
-        mp_obj_print_exception(&mp_plat_print, (mp_obj_t)nlr.ret_val);
-    }
-}
-#endif
-
 static char *stack_top;
 #if MICROPY_ENABLE_GC
-static char heap[2048];
+static char heap[120000];
 #endif
 
 int main(int argc, char **argv) {
@@ -40,19 +23,19 @@ int main(int argc, char **argv) {
     #endif
     mp_init();
     #if MICROPY_ENABLE_COMPILER
-    #if MICROPY_REPL_EVENT_DRIVEN
-    pyexec_event_repl_init();
+    // Main script is finished, so now go into REPL mode.
+    // The REPL mode can change, or it can request a soft reset.
     for (;;) {
-        int c = mp_hal_stdin_rx_chr();
-        if (pyexec_event_repl_process_char(c)) {
-            break;
+        if (pyexec_mode_kind == PYEXEC_MODE_RAW_REPL) {
+            if (pyexec_raw_repl() != 0) {
+                break;
+            }
+        } else {
+            if (pyexec_friendly_repl() != 0) {
+                break;
+            }
         }
     }
-    #else
-    pyexec_friendly_repl();
-    #endif
-    //do_str("print('hello world!', list(x+1 for x in range(10)), end='eol\\n')", MP_PARSE_SINGLE_INPUT);
-    //do_str("for i in range(10):\r\n  print(i)", MP_PARSE_FILE_INPUT);
     #else
     pyexec_frozen_module("frozentest.py");
     #endif
@@ -86,17 +69,6 @@ MP_DEFINE_CONST_FUN_OBJ_KW(mp_builtin_open_obj, 1, mp_builtin_open);
 void nlr_jump_fail(void *val) {
     while (1);
 }
-
-void NORETURN __fatal_error(const char *msg) {
-    while (1);
-}
-
-#ifndef NDEBUG
-void MP_WEAK __assert_func(const char *file, int line, const char *func, const char *expr) {
-    printf("Assertion '%s' failed, at file %s:%d\n", expr, file, line);
-    __fatal_error("Assertion failed");
-}
-#endif
 
 #if MICROPY_MIN_USE_CORTEX_CPU
 
@@ -205,9 +177,10 @@ typedef struct {
     volatile uint32_t CR1;
 } periph_uart_t;
 
-#define USART1 ((periph_uart_t*) 0x40011000)
+#define USART3 ((periph_uart_t*) 0x40004800)
 #define GPIOA  ((periph_gpio_t*) 0x40020000)
 #define GPIOB  ((periph_gpio_t*) 0x40020400)
+#define GPIOD  ((periph_gpio_t*) 0x40020C00)
 #define RCC    ((periph_rcc_t*)  0x40023800)
 
 // simple GPIO interface
@@ -241,18 +214,18 @@ void stm32_init(void) {
     // leave the clock as-is (internal 16MHz)
 
     // enable GPIO clocks
-    RCC->AHB1ENR |= 0x00000003; // GPIOAEN, GPIOBEN
+    RCC->AHB1ENR |= 0x0000000B; // GPIOAEN, GPIOBEN
 
     // turn on an LED! (on pyboard it's the red one)
-    gpio_init(GPIOA, 13, GPIO_MODE_OUT, GPIO_PULL_NONE, 0);
-    gpio_high(GPIOA, 13);
+    gpio_init(GPIOD, 5, GPIO_MODE_OUT, GPIO_PULL_NONE, 0);
+    gpio_low(GPIOD, 5);
 
-    // enable UART1 at 9600 baud (TX=B6, RX=B7)
-    gpio_init(GPIOB, 6, GPIO_MODE_ALT, GPIO_PULL_NONE, 7);
-    gpio_init(GPIOB, 7, GPIO_MODE_ALT, GPIO_PULL_NONE, 7);
-    RCC->APB2ENR |= 0x00000010; // USART1EN
-    USART1->BRR = (104 << 4) | 3; // 16MHz/(16*104.1875) = 9598 baud
-    USART1->CR1 = 0x0000200c; // USART enable, tx enable, rx enable
+    // enable UART3 at 9600 baud (TX=B6, RX=B7)
+    gpio_init(GPIOD, 8, GPIO_MODE_ALT, GPIO_PULL_NONE, 7);
+    gpio_init(GPIOD, 9, GPIO_MODE_ALT, GPIO_PULL_NONE, 7);
+    RCC->APB1ENR |= 0x00040000; // USART3EN
+    USART3->BRR = (8 << 4) | 11; // 16MHz/(16*8.6875) = 115108 baud
+    USART3->CR1 = 0x0000200c; // USART enable, tx enable, rx enable
 }
 
 #endif
