@@ -37,6 +37,7 @@ SRC_C = \
 	lib/libc/string0.c \
 	lib/mp-readline/readline.c \
 	lib/utils/interrupt_char.c \
+	py_flash/py_flash.py.c \
 	$(BUILD)/_frozen_mpy.c \
 
 OBJ = $(PY_CORE_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o))
