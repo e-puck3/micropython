@@ -9,9 +9,9 @@ DIX = const(10)
 def print_div():
 	for i in range(10):
 		if i%2 == 0:
-			print('le nombre ',i,' est pair et ',i,' divisé par ', x, ' = ', divide(i,DIX))
+			print('le nombre ',i,' est pair et ',i,' divisé par ', DIX, ' = ', divide(i,DIX))
 		else:
-			print('le nombre ',i,' est impair et ',i,' divisé par ', x, ' = ', divide(i,DIX))
+			print('le nombre ',i,' est impair et ',i,' divisé par ', DIX, ' = ', divide(i,DIX))
 
 def print_tab(a):
 	for i in a:

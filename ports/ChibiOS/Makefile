@@ -13,6 +13,7 @@ CROSS_COMPILE ?= arm-none-eabi-
 INC += -I.
 INC += -I$(TOP)
 INC += -I$(BUILD)
+INC += -Ipy_flash/
 
 DFU = $(TOP)/tools/dfu.py
 PYDFU = $(TOP)/tools/pydfu.py
@@ -37,13 +38,16 @@ SRC_C = \
 	lib/libc/string0.c \
 	lib/mp-readline/readline.c \
 	lib/utils/interrupt_char.c \
-	py_flash/py_flash.py.c \
+	$(BUILD)/py_flash.py.c \
 	$(BUILD)/_frozen_mpy.c \
 
 OBJ = $(PY_CORE_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o))
 
 CLEAN_EXTRA = ./libmicropython.a frozentest.mpy
 
+$(BUILD)/py_flash.py.c : py_flash/py_flash.py
+	$(ECHO) "MISC freezing python code"
+	$(Q)$(PYTHON) ./python2cArray.py $< > $@
 
 $(BUILD)/_frozen_mpy.c: $(FROZEN_PY_FILE:.py=.mpy) $(BUILD)/genhdr/qstrdefs.generated.h
 	$(ECHO) "MISC freezing bytecode"
