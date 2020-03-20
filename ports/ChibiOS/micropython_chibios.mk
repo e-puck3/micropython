@@ -9,3 +9,10 @@ USE_OPT += 	-isystem $(MPTOP) \
 			-isystem $(MPTOP)/ports/ChibiOS/py_flash \
 # 			$(MPTOP)/ports/ChibiOS/build \
 # 			$(BUILD)/genhdr
+
+preall: 
+	$(MAKE) -C $(MPTOP)/ports/ChibiOS/;
+	$(MAKE) all
+
+CLEAN_RULE_HOOK:
+	$(MAKE) -C $(MPTOP)/ports/ChibiOS/ clean;
