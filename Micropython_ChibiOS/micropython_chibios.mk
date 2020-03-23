@@ -1,22 +1,24 @@
 
+MPTOP_CHIBIOS ?= $(MPTOP)/Micropython_ChibiOS
+
 ALLDEFS +=	-DNO_QSTR
 
 # Include directories
 #Need to add to USE_OPT and not ALLINC if we want to use -isystem option
 #otherwisee it is bypassed by -I in the rules.mk of ChibiOS
 USE_OPT += 	-isystem $(MPTOP) \
-			-isystem $(MPTOP)/ports/ChibiOS \
-			-isystem $(MPTOP)/ports/ChibiOS/python_flash_code \
+			-isystem $(MPTOP_CHIBIOS) \
+			-isystem $(MPTOP_CHIBIOS)/python_flash_code \
 # 			$(MPTOP)/ports/ChibiOS/build \
 # 			$(BUILD)/genhdr
 
-ALLCSRC	+=	$(MPTOP)/ports/ChibiOS/flash/flash.c
+ALLCSRC	+=	$(MPTOP_CHIBIOS)/flash/flash.c
 
-ALLINC	+=	$(MPTOP)/ports/ChibiOS/flash/
+ALLINC	+=	$(MPTOP_CHIBIOS)/flash/
 
 preall: 
-	$(MAKE) -C $(MPTOP)/ports/ChibiOS/;
+	$(MAKE) -C $(MPTOP_CHIBIOS)/ MPTOP=$(MPTOP);
 	$(MAKE) all
 
 CLEAN_RULE_HOOK:
-	$(MAKE) -C $(MPTOP)/ports/ChibiOS/ clean;
+	$(MAKE) -C $(MPTOP_CHIBIOS)/ clean;

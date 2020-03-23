@@ -1,4 +1,6 @@
-include ../../py/mkenv.mk
+MPTOP ?= ../
+
+include $(MPTOP)/py/mkenv.mk
 
 all:lib
 
