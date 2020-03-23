@@ -8,7 +8,12 @@
 
 #include "mp_platform.h"
 
-#include "main.h"
+#include <ch.h>
+#include <hal.h>
+
+#include <usbcfg.h>
+#include <shell.h>
+#include <chprintf.h>
 
 #include "py/compile.h"
 #include "py/runtime.h"
@@ -21,7 +26,7 @@
 #include "mpport.h"
 #include "py_flash.h" 
 #include "lib/mp-readline/readline.h"
-#include "flash/flash.h"
+#include "flash/mp_flash.h"
 
 /////////////////////////////////////////PRIVATE FUNCTIONS/////////////////////////////////////////
 
@@ -42,16 +47,16 @@ void mpFlashWrite(uint8_t c){
 	//write c to flash
 
 	//writes the choice and the pattern on the flash 
-	flash_program_byte(py_flash_rw_start + flash_code_len, c);
+	mp_flash_program_byte(py_flash_rw_start + flash_code_len, c);
 
 	//increment for the next write
 	flash_code_len += sizeof(uint8_t);
 }
 
 void mpFlashBegin(void){
-	flash_unlock();
+	mp_flash_unlock();
 	flash_code_len = 0;
-	flash_erase_sector(MICROPYTHON_FLASH_CODE_SECTOR);
+	mp_flash_erase_sector(MICROPYTHON_FLASH_CODE_SECTOR);
 }
 
 void mpFlashFinish(bool valid){
@@ -62,7 +67,7 @@ void mpFlashFinish(bool valid){
 	}
 
 	mpFlashWrite('\0');
-	flash_lock();
+	mp_flash_lock();
 }
 
 void mpStoreCodeToFlash(void){
@@ -129,15 +134,17 @@ soft_reset:
 #endif
 	mp_init();
 #if MICROPY_ENABLE_COMPILER
+
+	//Waits to be connected to the terminal
+	while(!mp_is_terminal_connected()){
+		chThdSleepMilliseconds(500);
+	}
+
 	//compiles and eecutes the python script stored in flash
 	micropython_parse_compile_execute_from_str(py_flash_code);
 	// Main script is finished, so now go into REPL mode.
 	// The REPL mode can change, or it can request a soft reset.
 
-	//Waits to be connected to the terminal
-	while(!isUSBConfigured()){
-		chThdSleepMilliseconds(500);
-	}
 	for (;;) {
 
 	    if (pyexec_mode_kind == PYEXEC_MODE_RAW_REPL) {
@@ -174,6 +181,10 @@ void gc_collect(void) {
     gc_collect_root(&dummy, ((mp_uint_t)stack_top - (mp_uint_t)&dummy) / sizeof(mp_uint_t));
     gc_collect_end();
     gc_dump_info();
+}
+
+int mp_is_terminal_connected(void){
+	return isUSBConfigured();
 }
 
 //flushes the input buffer
