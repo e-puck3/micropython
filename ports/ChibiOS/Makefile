@@ -26,9 +26,9 @@ CFLAGS += -fdata-sections -ffunction-sections
 
 LIBS =
 
-FROZEN_PY_FILE = frozentest.py
+FROZEN_MANIFEST = manifest.py
 
-MPY_CROSS_FLAGS = 
+MPY_CROSS_FLAGS =
 
 SRC_C = \
 	mpport.c \
@@ -39,22 +39,17 @@ SRC_C = \
 	lib/mp-readline/readline.c \
 	lib/utils/interrupt_char.c \
 	$(BUILD)/py_flash.py.c \
-	$(BUILD)/_frozen_mpy.c \
+
+ifneq ($(FROZEN_MANIFEST),)
+	SRC_C +=  $(BUILD)/frozen_content.c
+endif
 
 OBJ = $(PY_CORE_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o))
 
-CLEAN_EXTRA = ./libmicropython.a frozentest.mpy
+CLEAN_EXTRA = ./libmicropython.a
 
 $(BUILD)/py_flash.py.c : python_flash_code/py_flash.py
 	$(ECHO) "MISC freezing python code"
 	$(Q)$(PYTHON) ./python2cArray.py $< > $@
-
-$(BUILD)/_frozen_mpy.c: $(FROZEN_PY_FILE:.py=.mpy) $(BUILD)/genhdr/qstrdefs.generated.h
-	$(ECHO) "MISC freezing bytecode"
-	$(Q)$(TOP)/tools/mpy-tool.py -f -q $(BUILD)/genhdr/qstrdefs.preprocessed.h -mlongint-impl=none $< > $@
-
-$(FROZEN_PY_FILE:.py=.mpy):
-	$(TOP)/mpy-cross/mpy-cross $(FROZEN_PY_FILE) $(MPY_CROSS_FLAGS)
-
 
 include $(TOP)/py/mkrules.mk
