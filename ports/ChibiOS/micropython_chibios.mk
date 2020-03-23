@@ -6,7 +6,7 @@ ALLDEFS +=	-DNO_QSTR
 #otherwisee it is bypassed by -I in the rules.mk of ChibiOS
 USE_OPT += 	-isystem $(MPTOP) \
 			-isystem $(MPTOP)/ports/ChibiOS \
-			-isystem $(MPTOP)/ports/ChibiOS/py_flash \
+			-isystem $(MPTOP)/ports/ChibiOS/python_flash_code \
 # 			$(MPTOP)/ports/ChibiOS/build \
 # 			$(BUILD)/genhdr
 
