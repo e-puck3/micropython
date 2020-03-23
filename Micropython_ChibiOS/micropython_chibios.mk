@@ -12,13 +12,15 @@ USE_OPT += 	-isystem $(MPTOP) \
 # 			$(MPTOP)/ports/ChibiOS/build \
 # 			$(BUILD)/genhdr
 
-ALLCSRC	+=	$(MPTOP_CHIBIOS)/flash/flash.c
+ALLCSRC	+=	$(MPTOP_CHIBIOS)/flash/flash.c \
+			$(MPTOP_CHIBIOS)/mp_platform.c
 
-ALLINC	+=	$(MPTOP_CHIBIOS)/flash/
+ALLINC	+=	$(MPTOP_CHIBIOS)/ \
+			$(MPTOP_CHIBIOS)/flash/
 
 preall: 
-	$(MAKE) -C $(MPTOP_CHIBIOS)/ MPTOP=$(MPTOP);
+	$(MAKE) -C $(MPTOP_CHIBIOS)/ MPTOP=$(MPTOP_FOR_MP_MAKEFILE);
 	$(MAKE) all
 
 CLEAN_RULE_HOOK:
-	$(MAKE) -C $(MPTOP_CHIBIOS)/ clean;
+	$(MAKE) -C $(MPTOP_CHIBIOS)/ clean MPTOP=$(MPTOP_FOR_MP_MAKEFILE);
