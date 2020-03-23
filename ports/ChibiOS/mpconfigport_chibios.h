@@ -32,7 +32,7 @@
 // Python internal features
 //#define MICROPY_READER_VFS          (1)
 #define MICROPY_ENABLE_GC           (1)
-#define MICROPY_GC_ALLOC_THRESHOLD  (1)		//need tp test if it works
+#define MICROPY_GC_ALLOC_THRESHOLD  (1)		//need to test if it works
 #define MICROPY_ENABLE_FINALISER 	(1)
 //#define MICROPY_STACK_CHECK			(1)			//doesn't work
 //#define MICROPY_ENABLE_EMERGENCY_EXCEPTION_BUF (1)	// need to test if enabled

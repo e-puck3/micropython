@@ -10,6 +10,10 @@ USE_OPT += 	-isystem $(MPTOP) \
 # 			$(MPTOP)/ports/ChibiOS/build \
 # 			$(BUILD)/genhdr
 
+ALLCSRC	+=	$(MPTOP)/ports/ChibiOS/flash/flash.c
+
+ALLINC	+=	$(MPTOP)/ports/ChibiOS/flash/
+
 preall: 
 	$(MAKE) -C $(MPTOP)/ports/ChibiOS/;
 	$(MAKE) all
