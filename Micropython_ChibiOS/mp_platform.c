@@ -118,7 +118,7 @@ void mpStoreCodeToFlash(void){
 	}
 }
 
-static THD_WORKING_AREA(waMicropythonThd,1024);
+static THD_WORKING_AREA(waMicropythonThd,4096);
 static THD_FUNCTION(MicropythonThd,arg) {
   	(void)arg;
   	chRegSetThreadName("Micropython Thd");
