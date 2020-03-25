@@ -2,7 +2,12 @@ MPTOP ?= ../
 
 include $(MPTOP)/py/mkenv.mk
 
-all:lib
+all:
+#tests if mpy-cross exists. If not, compiles it
+ifeq ($(wildcard $(TOP)/mpy-cross/mpy-cross),)
+	$(MAKE) -C $(TOP)/mpy-cross/
+endif
+	$(MAKE) lib
 
 # qstr definitions (must come before including py.mk)
 QSTR_DEFS = qstrdefsport.h
@@ -63,6 +68,9 @@ endif
 OBJ = $(PY_CORE_O) $(addprefix $(BUILD)/, $(SRC_C:.c=.o))
 
 CLEAN_EXTRA = ./libmicropython.a
+
+mpy-cross :
+	$(MAKE) -C $(TOP)/mpy-cross/
 
 ifeq ($(PYTHON_FLASH_CODE),yes)
 $(BUILD)/py_flash.py.c : python_flash_code/py_flash.py
