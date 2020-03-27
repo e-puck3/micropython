@@ -2,6 +2,9 @@
 
 // options to control how MicroPython is built
 
+// c modules put in /c_modules/name_of_the_module/
+#define MODULE_EXAMPLE_ENABLED		(1)
+
 // You can disable the built-in MicroPython compiler by setting the following
 // config option to 0.  If you do this then you won't get a REPL prompt, but you
 // will still be able to execute pre-compiled scripts, compiled with mpy-cross.
@@ -99,7 +102,6 @@
 //#define MICROPY_PY_SYS_STDIO_BUFFER (1)
 #define MICROPY_PY_UERRNO           (1)
 //#define MICROPY_PY_THREAD           (1)
-
 
 // debug options
 #define MICROPY_MEM_STATS           (1)

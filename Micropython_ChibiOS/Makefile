@@ -12,6 +12,7 @@ endif
 # qstr definitions (must come before including py.mk)
 QSTR_DEFS = qstrdefsport.h
 
+USER_C_MODULES = c_modules
 # include py core make definitions
 include $(TOP)/py/py.mk
 
