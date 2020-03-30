@@ -14,12 +14,11 @@ $(foreach module, $(wildcard $(MPTOP_CHIBIOS)/c_modules/*/micropython.mk), \
 #otherwisee it is bypassed by -I in the rules.mk of ChibiOS
 USE_OPT += 	-isystem $(MPTOP)
 
-ALLCSRC	+=	$(MPTOP_CHIBIOS)/flash/mp_flash.c \
+ALLCSRC	+=	$(MPTOP_CHIBIOS)/mp_flash.c \
 			$(MPTOP_CHIBIOS)/mp_platform.c
 
 ALLINC	+=	$(MPTOP_CHIBIOS)/ \
 			$(MPTOP_CHIBIOS)/build/ \
-			$(MPTOP_CHIBIOS)/mp_flash/ \
 			$(MPTOP_CHIBIOS)/python_flash_code
 
 # yes or no to compile and include or not the frozen files described by manifest.py
