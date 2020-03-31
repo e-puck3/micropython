@@ -26,7 +26,7 @@
 #include "mpport.h"
 #include "py_flash.h" 
 #include "lib/mp-readline/readline.h"
-#include "flash/mp_flash.h"
+#include "mp_flash.h"
 
 /////////////////////////////////////////PRIVATE FUNCTIONS/////////////////////////////////////////
 
