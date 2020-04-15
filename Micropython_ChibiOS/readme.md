@@ -222,4 +222,41 @@ include $(MPTOP_CHIBIOS)/micropython_chibios.mk
 ULIBS = $(MPTOP_CHIBIOS)/libmicropython.a
 
 ```
+Special note
+------------
 
+In order to deal with the redefinitions of some standard functions made in Micropython, it is necessary to modify the ``rules.mk`` makefile used by ChibiOS (the one included at the end of your ChibiOS project makefile) as showed below :
+
+**$(LIBS)** and **$(LDFLAGS)** have to be inverted such a way that **$(LIBS)** is written before **$(LDFLAGS)**.
+
+Before the modification :
+```makefile
+...
+198	
+199		$(BUILDDIR)/$(PROJECT).elf: $(OBJS) $(LDSCRIPT)
+200		ifeq ($(USE_VERBOSE_COMPILE),yes)
+201			@echo
+202			$(LD) $(OBJS) $(LDFLAGS) $(LIBS) -o $@
+203		else
+204			@echo Linking $@
+205			@$(LD) $(OBJS) $(LDFLAGS) $(LIBS) -o $@
+206		endif
+207
+...
+```
+
+After the modification :
+```makefile
+...
+198	
+199		$(BUILDDIR)/$(PROJECT).elf: $(OBJS) $(LDSCRIPT)
+200		ifeq ($(USE_VERBOSE_COMPILE),yes)
+201			@echo
+202			$(LD) $(OBJS) $(LIBS) $(LDFLAGS) -o $@
+203		else
+204			@echo Linking $@
+205			@$(LD) $(OBJS) $(LIBS) $(LDFLAGS) -o $@
+206		endif
+207
+...
+```
