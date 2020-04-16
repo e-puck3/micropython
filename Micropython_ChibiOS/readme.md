@@ -177,7 +177,7 @@ Indeed, some files in the **Micropython_ChibiOS** directory are compiled in the 
 Note : since the definitions of micropython are given to the ChibiOS makefile, micropython functions can be used by the user code without the need to compile them with micropython.
 
 Here are some little things to add to your ChibiOS makefile to add this port :
-- Add the specific variables below to your makefile before the CSRC definition
+- Add the specific variables below to your makefile before the **CSRC** definition
 	- ``MPTOP`` 				: Path to the micropython folder (relative to the ChibiOS makefile)
 	- ``MPTOP_CHIBIOS``			: Path to the Micropython_ChibiOS folder (relative to the ChibiOS makefile)
 	- ``MPTOP_FOR_MP_MAKEFILE`` : Path to the micropython folder (relative to ``micropython_chibios.mk``)
@@ -186,8 +186,10 @@ Here are some little things to add to your ChibiOS makefile to add this port :
 	- ``include $(MPTOP_CHIBIOS)/micropython_chibios.mk``
 - Add the library path to the **ULIBS** variable near the end of the ChibiOS makefile
 	- ``$(MPTOP_CHIBIOS)/libmicropython.a``
-
-Note : **ALLCSRC** and **ALLINC** variables are used by the submakefiles to add sources and headers. Add them to **CSRC** and **INCDIR** respectively in your ChibiOS makefile if not already present.
+- Add these variables in your makefile if it's not already the case
+	-	``$(ALLCSRC)`` 	to 	``CSRC``
+	-	``$(ALLINC)`` 	to 	``INCDIR``
+	-	``$(ALLDEFS)`` 	to 	``UDEFS``
 
 For example with this folder structure :
 ```
@@ -217,6 +219,22 @@ include $(MPTOP_CHIBIOS)/micropython_chibios.mk
 
 ...
 
+# C sources that can be compiled in ARM or THUMB mode depending on the global
+# setting.
+CSRC = 	$(ALLCSRC) \
+		...		   \
+		...
+
+...
+
+INCDIR = 	$(ALLINC) \
+			...		  \
+			...
+
+# List all user C define here, like -D_DEBUG=1
+UDEFS = $(ALLDEFS) \
+		...		   \
+		...
 
 # List all user libraries here
 ULIBS = $(MPTOP_CHIBIOS)/libmicropython.a
