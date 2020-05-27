@@ -14,19 +14,32 @@ some variables name in the makefiles. We don't want to modify how micropython is
 
 Python3 as well as GCC and arm-none-eabi-gcc are needed to compile the library. It works well on Linux and Mac. Windows needs an emulation of make and some gnutools to work. Better to avoid it :-)
 
+Table of content
+----------------
+- [Directories and files explanations](#directories-and-files-explanations)
+- [Modules](#modules)
+  - [Python script sent to the ram](#python-script-sent-to-the-ram)
+  - [Python script stored in the flash](#python-script-stored-in-the-flash)
+  - [Python precompiled script](#python-precompiled-script)
+  - [Python C module](#python-c-module)
+- [Platform dependent files](#platform-dependent-files)
+- [Build instructions](#build-instructions)
+- [Special note](#special-note)
+
+
 Directories and files explanations
---------------------------------
+----------------------------------
 
 Here is a non-exhaustive list of the important files and folders inside **Micropython_ChibiOS** :
 
-- c_modules/ --Contains the C modules to include to micropython
-- python_flash_code/py_flash.py --This file is the python script included in the flash of the MCU and executed a boot
-- python_modules/ --Contains python's script that are included as precompiled modules for micropython
-- manifest.py --Lists the python_modules to precompile and include to micropython
-- micropython_chibios.mk --Makefile to include in the ChibiOS makefile
-- mp_platform .h/.c --Platform dependent files. Most of the changes needed will probalby occur in these files
-- mpconfigport_chibios.h --Enable or disable here functionalities of micropython
-- python2cArray.py --Python script used to convert a python script to a C array
+- **c_modules/** --Contains the C modules to include to micropython
+- **python_flash_code/py_flash.py** --This file is the python script included in the flash of the MCU and executed at boot
+- **python_modules/** --Contains python's scripts that are included as precompiled modules for micropython
+- **manifest.py** --Lists the python_modules to precompile and include to micropython
+- **micropython_chibios.mk** --Makefile to include in the ChibiOS makefile
+- **mp_platform .h/.c** --Platform dependent files. Most of the changes needed will probalby occur in these files
+- **mpconfigport_chibios.h** --Enable or disable here functionalities of micropython
+- **python2cArray.py** --Python script used to convert a python script to a C array
 
 Modules
 -------
@@ -38,7 +51,7 @@ Four ways have been implemented to add python code to micropython.
 
 ### Python script sent to the ram
 
-Usual commands of the micropython's REPL are supported. So, a simple CTRL-E while in the REPL will put the REPL in paste mode, which let you copy-paste python script to the ram which will be executed immediately after finishing with CTRL-D.
+Usual commands of the micropython's REPL are supported. So, a simple ``CTRL-E`` while in the REPL will put the REPL in **paste mode**, which lets you copy-paste a python script to the ram which will be executed immediately after finishing with ``CTRL-D``.
 
 Keep in mind that sending for example 1k of code will usually use more than 1k of ram so pay attention on the amount of ram allocated for micropython in your code.
 
@@ -47,20 +60,20 @@ Keep in mind that sending for example 1k of code will usually use more than 1k o
 Normally a board with micropython, when connected to the computer, would show a mass storage and a serial port.
 We decided for simplicity to not do it this way. Instead we use a mimic of the paste mode to send code not to the ram, but directly to the flash of the MCU. 
 
-A sector of the flash is allocated for it and an array called **py_flash_code** is put at the beginning of the sector. Then, when a code is sent through the REPL, the sector is erased and the python script is stored in the flash. Then micropython reboots and the code is compiled and executed.
+A sector of the flash is allocated for it and an array called **py_flash_code** is put at the beginning of the sector. Then, when a code is sent through the REPL, the sector is erased and the python script is stored in the flash. Then micropython reboots and the code is compiled and executed at each boot.
 
 Obviously, it means once the code has been copied correctly, it remains in the MCU until a new code is flashed.
 
-To send a python code to the flash, use **CTRL-D** on the REPL. It will ask you if you want to send
-a python script to the flash. Use **CTRL-E for yes** or **CTRL-D for no**. If no is chosen, it will perform the usual reset of micropython. When yes is chosen, the REPL will be put in paste mode but this time the code will be copied to the flash.
-Use **CTRL-C to cancel** (this means no more code is present in the flash, regardless of what you sent) or
-**CTRL-D to finish**.
+To send a python code to the flash, use ``CTRL-D`` on the REPL. It will ask you if you want to send
+a python script to the flash. Use ``CTRL-E`` for **yes** or ``CTRL-D`` for **no**. If no is chosen, it will perform the usual reset of micropython. When yes is chosen, the REPL will be put in **paste mode** but this time the code will be copied to the flash.
+Use ``CTRL-C`` to **cancel** (this also means no valid code will be present in the flash, regardless of what you sent) or
+``CTRL-D`` to **finish**.
 
 To use the python script stored in flash functionality, you need to add
 ```
 MP_PYTHON_FLASH_CODE = yes
 ```
-to your makefile (see build instructions below for more details).
+to your makefile (see [build instructions](#build-instructions) for more details).
 
 You also need to edit your .ld file to reserve a flash sector for the python code.
 
@@ -71,7 +84,7 @@ For example we want the sector at address 0x080C0000 to be called **py_flash_rw*
  py_flash_rw : org = 0x080C0000, len = 268k
 ```
 
-Don't forget to also reduce the length definition of the flash used for the usual code (usually called flash0 with ChibiOS) since we don't want the linker to put program code into our py_flash_rw sector.
+Don't forget to also reduce the length definition of the flash used for the usual code (usually called flash0 with ChibiOS) since we don't want the linker to put program code into our **py_flash_rw** sector.
 
 2. Add the following lines after the ``MEMORY`` part to create an alias to **py_flash_rw** and the pointers used in the code to write the python script to the good address.
 
@@ -90,11 +103,11 @@ _py_flash_rw_end   = ORIGIN(py_flash_rw) + LENGTH(py_flash_rw);
 } > PY_FLASH
 ```
 
-This tells the linker to put at PY_FLASH (which is the alias of py_flash_rw) every declaration which explicitly asks to be stored in the .py_flash section.
+This tells the linker to put at **PY_FLASH** (which is the alias of **py_flash_rw**) every declaration in the C code which explicitly asks to be stored in the **.py_flash** section. You also need to edit the **MICROPYTHON_FLASH_CODE_SECTOR** definition inside the file ``mp_platform.h`` to give the sector number used.
 
 Since we need to create the array in which is stored the python code, we can also fill it with a python script during the compilation. This is done with ``python3cArray.py`` that converts the python code ``py_flash.py`` to a C array of char. This means you can freely modify this file to have a default python script stored in flash each time the MCU is programmed.
 
-### Python precompiled scripts
+### Python precompiled script
 
 You can add a precompiled python script (called frozen module) to the code with the ``manifest.py`` file and the **python_modules** folder. The precompiled script is compiled on the computer during the compilation process and added to the code of micropython. This method uses more flash than a bare python script and cannot be changed at runtime (you need to recompile the whole library) but it has the advantage of using less ram. It's good to use it if you want to have a python module that won't change a lot, or if you can easily recompile the whole firmware.
 
@@ -108,13 +121,13 @@ To use the frozen modules, you need to enable the functionality by adding
 MP_FROZEN_PYTHON = yes
 ```
 
-to your makefile (see build instructions below for more details).
+to your makefile (see [build instructions](#build-instructions) for more details).
 
-Now you can put your python scripts in the **python_modules** folder and edit the ``manifest.py`` to add them to the compilation. You can find examples of manifest.py in the STM32 port for the syntax.
+Now you can put your python scripts in the **python_modules** folder and edit the ``manifest.py`` to add them to the compilation. You can find examples of manifest.py in the [STM32 port](../ports/stm32) for the syntax.
 
 ### Python C module
 
-Finally, it is possible to write micropython modules in C. They are then embedded in the micropython compiled library like the frozen modules, except they are written in C. This possibility lets the user write time critical functions and let the possibility to make a link between micropython and libraries and/or drivers written in C for the platform used. The modules are to be put in the **c_modules** folder.
+Finally, it is possible to write micropython modules in C. They are then embedded in the micropython compiled library like the frozen modules, except they are written in C. This possibility lets the user write time critical functions and lets the possibility to make a link between micropython and libraries and/or drivers written in C for the platform used. The modules are to be put in the **c_modules** folder.
 
 Each C module has to be in its own folder to be correctly processed during the compilation. But nothing prevents you from putting multiple C modules inside the same folder, as long as this folder is inside **c_modules**, it's just less clean.
 
@@ -166,7 +179,7 @@ Build instructions
 
 To use this port, you can add this git as a git submodule to your project. Then copy the folder 
 **Micropython_ChibiOS** inside your project. We propose this because you will probably have to edit
-some files inside this folder. This let you commit these changes without the need to fork this fork :-)
+some files inside this folder. This lets you commit these changes without the need to fork this fork :-)
 
 The **Micropython_ChibiOS** folder contains two makefiles :
 1. ``Makefile`` : This is the makefile used to compile the micropython library. It is really similar to the makefiles findable in the different micropython ports.
@@ -240,6 +253,14 @@ UDEFS = $(ALLDEFS) \
 ULIBS = $(MPTOP_CHIBIOS)/libmicropython.a
 
 ```
+
+There are still some minor changes to do in the ChibiOS makefile in order to be compatible with the micropython library compilation:
+- Add ``-lm`` to ``USE_LDOPT`` to link the **math.h** library used by micropython
+- Set ``USE_THUMB`` to ``yes`` and add if necessary ``-mthumb -DTHUMB`` to ``TOPT`` in order to enable the thumb mode compilation
+- Set the ``USE_FPU`` to ``hard`` to enable the hardware FPU
+
+Also, the micropython library makefile is set to compile for a Cortex-M7. If you use another member of the cortex-M family, you need to adapt some arguments of the ``CFLAGS_CORTEX_M7`` flag in **Micropython_ChibiOS/makefile** 
+
 Special note
 ------------
 
